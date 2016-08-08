@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style type="text/css">
+			*{
+				padding: 0;
+				margin: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<img src="" alt="" id="img" />
+	</body>
+	
+	<script type="text/javascript">
+		var img = document.getElementById("img");
+		var index = 0;
+		img.src = "img/h" + index + ".png";
+		var timer = setInterval(function(){
+			index ++;
+			if(index >= 5){
+				clearInterval(timer);
+			}
+			img.src = "img/h" + index + ".png";
+		},150);
+		
+	</script>
+</html>

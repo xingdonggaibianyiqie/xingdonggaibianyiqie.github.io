@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style type="text/css">
+			*{
+				padding: 0;
+				margin: 0;
+			}
+			#mod{
+				width: 320px;
+				height: 480px;
+				background: url(img/game_bg.jpg) no-repeat;
+				margin: 20px auto;
+				position: relative;
+			}
+			#score{
+				position: absolute;
+				left: 65px;
+				top: 15px;
+				color: white;
+			}
+			#progress_bar{
+				position: absolute;
+				left: 63px;
+				top: 66px;
+				width: 180px;
+				height: 16px;
+				background: url(img/progress.png);
+			}
+			#wolfBox{
+				position: absolute;
+			}
+			#wolfBox img{
+				position: absolute;
+			}
+			#start{
+				position: absolute;
+				color: red;
+				font-size: 30px;
+				text-align: center;
+				top: 200px;
+				width: 100%;
+				cursor: pointer;
+			}
+			#game_over{
+				position: absolute;
+				color: red;
+				font-size: 30px;
+				bottom: 0;
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="mod">
+			<div id="score">
+				0
+			</div>
+			<div id="progress_bar">
+				
+			</div>
+			
+			<div id="wolfBox">
+				
+			</div>
+			
+			<div id="start">
+				开始
+			</div>
+			
+			<div id="game_over">
+				游戏结束
+			</div>
+			
+		</div>
+	</body>
+	
+	<script type="text/javascript">
+		// 获取计分器
+		var score = document.getElementById("score");
+		// 获取进度条
+		var progress_bar = document.getElementById("progress_bar");
+		// 获取狼圈（wolfBox）
+		var wolfBox = document.getElementById("wolfBox");
+		// 获取开始按钮
+		var start = document.getElementById("start");
+		// 获取 gameOver
+		var gameOver = document.getElementById("game_over");
+		
+		var pos_array = [{left:"98px",top:"115px"},
+		{left:"17px",top:"160px"},
+		{left:"15px",top:"220px"},
+		{left:"30px",top:"293px"},
+		{left:"122px",top:"273px"},
+		{left:"207px",top:"295px"},
+		{left:"200px",top:"211px"},
+		{left:"187px",top:"141px"},
+		{left:"100px",top:"185px"}];
+		// 定义一个定时器用来记录游戏的开始与结束
+		var  gameStartOrOverTimer = null;
+		
+		// 开始
+		start.onclick = function(){
+			// 让开始按钮消失
+			start.style.display = "none";
+			// 时间条计时
+			progressFun();
+			
+		gameStartOrOverTimer = 	setInterval(function(){
+				// 出现狼
+				var wolf = createWolf();
+				// 狼冒出的过程
+			wolf.appearTimer = setInterval(function(){
+					wolf.index ++;
+					if(wolf.index > 5){
+						clearInterval(wolf.appearTimer);
+						// 狼往回冒
+						wolfDisappearFun();
+					}
+					wolf.src = "img/"+wolf.type+wolf.index+".png";
+					
+				},150);
+				
+				// 狼消失的过程
+			function wolfDisappearFun(){
+					wolf.index --;
+				wolf.dissAppearTimer = setInterval(function(){
+						wolf.index --;
+						if(wolf.index < 0){
+							// 狼回去了
+							wolfBox.removeChild(wolf);
+							clearInterval(wolf.dissAppearTimer);
+							return;
+						}		
+					wolf.src = "img/"+wolf.type+wolf.index+".png";
+					},150);		
+			}
+			
+			beatWolf(wolf);
+				
+			},800);
+					
+		}
+		
+		// 时间进度条的滑动函数
+		function progressFun(){
+			var originWidth = 180;
+			var progressTimer = setInterval(function(){
+				originWidth--;
+				if(originWidth <= 0){
+					// 游戏结束
+					gameOverFun();
+					// 移除进度条定时器
+					clearInterval(progressTimer);
+					return;
+				}
+				progress_bar.style.width = originWidth + "px";
+			},100);
+		}
+		
+		// 创建狼
+		function createWolf(){
+			var wolf = document.createElement("img");
+			// 到底出现灰太狼还是他儿子
+			// type变量用来表明 狼的类型
+			var type =  randNumber(0,100) < 80 ? "h" :"x";
+			// 通过自定义属性 给这个狼记录它的类型
+			wolf.type = type;
+			// 主要考虑狼的位置
+			var bol = true;			
+			// 拿到当前画面显示的所有狼
+			var wolfsArray = wolfBox.children;
+			while(bol){
+				// 随机一个位置下标
+				var i = randNumber(0,pos_array.length - 1);
+				// 取出位置
+				var position = pos_array[i];
+				// 循环检测当前画面所有狼的位置有没跟 position 重复的
+				for (var j = 0;j <  wolfsArray.length;j ++) {
+					if(position.left == wolfsArray[j].style.left){
+						break;
+					}					
+				}
+				// 表明说数组里面没有跟当前位置重复的狼
+				if(j == wolfsArray.length){
+					 bol = false;
+					
+				}		
+			}
+			
+			//给狼确定位置
+		wolf.style.top = position.top;
+		wolf.style.left = position.left;
+		// 给狼图片
+		//给wolf 自定义一个属性，用来记录当前的狼应该显示哪张图片
+		wolf.index = 0;
+		wolf.src = "img/"+wolf.type+wolf.index+".png";
+		// 把这只狼添加到 wolfBox 里面
+		wolfBox.appendChild(wolf);
+		return wolf;
+					
+		}
+		// 产生 min - max 之间的随机数
+		function randNumber(min,max){
+			 return parseInt(Math.random() * (max - min + 1) + min);
+		}
+		
+		
+		// 打狼的函数(给狼绑定事件)
+		function beatWolf(wolf){
+			wolf.isBeat = false;
+			
+			wolf.onclick = function(){
+				// 如果第二次被打到了，不在进行处理
+				if(wolf.isBeat){
+				 return;
+			}
+			wolf.isBeat = true;
+			//1、 计分
+				scoreFun(wolf);
+			//2、消除狼出现和回去的定时器
+				clearInterval(wolf.appearTimer);
+				clearInterval(wolf.dissAppearTimer);
+			//3、狼出现被打到的动画
+				// 重置 index
+				wolf.index = 5;
+			var timer =	setInterval(function(){
+					wolf.index ++;
+					if(wolf.index >= 9){
+						// 移除定时器，并且让狼被移除
+						clearInterval(timer);
+						wolfBox.removeChild(wolf);
+					}
+					wolf.src = "img/" + wolf.type + wolf.index +".png";
+					
+				},150);
+				
+			//4、移除狼
+				
+			}
+		}
+		
+		// 计分函数
+		function scoreFun(wolf){
+			var number = parseInt(score.innerHTML);
+			// 判断狼的类型
+			if (wolf.type == "h") {
+				number += 10;
+			} else{
+				number -= 10;
+			}
+			score.innerHTML = number;
+			
+		}
+		
+		// 游戏结束的处理函数
+		function gameOverFun(){
+			//1、显示“游戏结束”
+			gameOver.style.display = "block";
+			
+			//2、关闭出现狼的定时器（每800ms 出现一次）
+			clearInterval(gameStartOrOverTimer);
+			// 3、移除所有狼的出现和消失定时器
+			for (var i = 0; i< wolfBox.children.length;i++) {
+				
+				clearInterval(wolfBox.children[i].appearTimer);
+				clearInterval(wolfBox.children[i].dissAppearTimer);
+				
+			}
+			
+			//4、移除所有的狼
+			wolfBox.innerHTML = "";
+			
+			
+		}
+			
+	</script>
+	
+</html>
